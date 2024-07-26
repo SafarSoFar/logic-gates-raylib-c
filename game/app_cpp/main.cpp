@@ -21,32 +21,72 @@ class Wire{
 		LogicState curLogicState;
 
 
-		Wire(Vector2 _startPos, Vector2 _endPos){
-			this->startPos = _startPos;	
-			this->endPos = _endPos;	
+		Wire(Vector2 startPos, Vector2 endPos){
+			this->startPos = startPos;	
+			this->endPos = endPos;	
 		}
 	
 };
+
+/*class SelfHostingConnection{
+	public:
+		Vector2 pos;
+		vector<Wire> connectedWires;
+		LogicState logicState;
+
+		/// @brief Connection constructor
+		/// @param pos 
+		/// @param curLogicState 
+		/// @param initWire wire on which a new connection will be introduced
+		SelfHostingConnection(Vector2 pos, LogicState logicState, Wire initWire){
+			this->pos = pos;
+			this->logicState = logicState;
+			connectedWires = vector<Wire>{initWire};
+		}
+
+		void add_wire(Wire wireToAdd){
+			std::cout<<"\nadding wire to the existing connection\nconnection logic state: " << this->logicState;
+			wireToAdd.curLogicState = this->logicState;
+			connectedWires.push_back(wireToAdd);
+		}
+
+		void change_logic_state(LogicState logicState){
+			this->logicState = logicState;
+			for(int i = 0; i < this->connectedWires.size(); i++){
+				connectedWires[i].curLogicState = logicState;
+			}
+		}
+};*/
 
 class Connection{
 	public:
 		Vector2 pos;
 		vector<Wire> connectedWires;
+		LogicState curLogicState;
 
-		Connection(Vector2 _pos){
-			this->pos = _pos;
-			connectedWires = vector<Wire>();
+		/// @brief Connection constructor
+		/// @param pos 
+		/// @param curLogicState 
+		/// @param initWire wire on which a new connection will be introduced
+		Connection(Vector2 pos, LogicState curLogicState, Wire initWire){
+			this->pos = pos;
+			this->curLogicState = curLogicState;
+			connectedWires = vector<Wire>{initWire};
 		}
 
-		void AddWire(Wire wireToAdd){
+		void add_wire(Wire wireToAdd){
+			std::cout<<"\nadding wire to the existing connection\nconnection logic state: " << this->curLogicState;
+			wireToAdd.curLogicState = this->curLogicState;
 			connectedWires.push_back(wireToAdd);
 		}
 
-		void ChangeLogicState(LogicState logicState){
+		void change_logic_state(LogicState logicState){
+			this->curLogicState = logicState;
 			for(int i = 0; i < this->connectedWires.size(); i++){
 				connectedWires[i].curLogicState = logicState;
 			}
 		}
+
 };
 
 
@@ -55,7 +95,7 @@ class Connection{
 /// @param connectionsVec 
 /// @param collisionPos 
 /// @return 
-Connection* CheckPosCollisionToConnections(vector<Connection> &connectionsVec, Vector2 collisionPos){
+Connection* check_pos_to_connections_collision(vector<Connection> &connectionsVec, Vector2 collisionPos){
 	for(int i = 0; i < connectionsVec.size(); i++){
 		if(CheckCollisionPointCircle(collisionPos,connectionsVec[i].pos, CONNECTION_RADIUS)){
 			return &connectionsVec[i];
@@ -73,8 +113,11 @@ int main ()
 
 	InitWindow(windowWidth, windowHeight, "Logic gates");
 
-	vector<Wire> wiresVec = vector<Wire>();
-	vector<Connection> connectionsVec = vector<Connection>();
+	Wire initWire = Wire(Vector2{100,100}, Vector2{100,150});
+	vector<Wire> wiresVec = vector<Wire>{initWire};
+
+	Connection initConnectionOn = Connection(Vector2{100,100}, LOGIC_ON, initWire);
+	vector<Connection> connectionsVec = vector<Connection>{initConnectionOn};
 
 	Vector2 zeroVec = Vector2{0,0};
 
@@ -90,10 +133,20 @@ int main ()
 		ClearBackground(GRAY);
 		DrawText("Press Q to remove everything", 0,0, 30, BLACK);
 		for(int i = 0; i < wiresVec.size();i++){
-			DrawLineEx(wiresVec[i].startPos, wiresVec[i].endPos, 5.0f, BLACK);
+			if(wiresVec[i].curLogicState == LOGIC_ON){
+				DrawLineEx(wiresVec[i].startPos, wiresVec[i].endPos, 5.0f, RED);
+			}
+			else{
+				DrawLineEx(wiresVec[i].startPos, wiresVec[i].endPos, 5.0f, BLACK);
+			}
 		}
 		for(int i = 0; i < connectionsVec.size(); i++){
-			DrawCircleV(connectionsVec[i].pos, CONNECTION_RADIUS,YELLOW);			
+			if(connectionsVec[i].curLogicState == LOGIC_ON){
+				DrawCircleV(connectionsVec[i].pos, CONNECTION_RADIUS, RED);			
+			}
+			else{
+				DrawCircleV(connectionsVec[i].pos, CONNECTION_RADIUS, BLACK);			
+			}
 		}
 
 		if(IsMouseButtonDown(MOUSE_BUTTON_LEFT)){
@@ -102,7 +155,7 @@ int main ()
 			bool hasConnection = false;
 
 			if(!isWireStarted){
-				startWireConnection = CheckPosCollisionToConnections(connectionsVec, curMousePos);
+				startWireConnection = check_pos_to_connections_collision(connectionsVec, curMousePos);
 				if(startWireConnection != nullptr){
 					curWireStart = startWireConnection->pos;
 				}
@@ -113,7 +166,7 @@ int main ()
 				isWireStarted = true;
 			}
 			
-			endWireConnection = CheckPosCollisionToConnections(connectionsVec, curMousePos);			
+			endWireConnection = check_pos_to_connections_collision(connectionsVec, curMousePos);			
 			if(endWireConnection != nullptr){
 				curWireEnd = endWireConnection->pos;
 			}
@@ -127,7 +180,7 @@ int main ()
 			isWireStarted = false;
 
 			// means that new wire looped on the connection and can cause unwanted behaviour
-			if(startWireConnection == endWireConnection){
+			if(startWireConnection != nullptr && startWireConnection == endWireConnection){
 				std::cout<<"\nWARNING: a shorted wire presented on the scheme\n";
 			}
 
@@ -139,20 +192,23 @@ int main ()
 			wiresVec.push_back(newWire);
 
 			if(startWireConnection != nullptr){
-				startWireConnection->AddWire(newWire);
+				startWireConnection->add_wire(newWire);
 			}			
 			else{
-				Connection newStartWireConnection = Connection(newWire.startPos);
+				Connection newStartWireConnection = Connection(newWire.startPos, LOGIC_OFF, newWire);
 				connectionsVec.push_back(newStartWireConnection);
 			}
 
 			if(endWireConnection != nullptr){
-				endWireConnection->AddWire(newWire);
+				endWireConnection->add_wire(newWire);
 			}
 			else{
-				Connection newEndWireConnection = Connection(newWire.endPos);
+				Connection newEndWireConnection = Connection(newWire.endPos, LOGIC_OFF, newWire);
 				connectionsVec.push_back(newEndWireConnection);
 			}
+
+			startWireConnection = nullptr;
+			endWireConnection = nullptr;
 		}
 			
 		if(IsKeyPressed(KEY_Q)){
