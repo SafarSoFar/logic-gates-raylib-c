@@ -21,8 +21,8 @@ int main ()
 
 	Vector2 curWireStart;
 	Vector2 curWireEnd;
-	Connection* startWireConnection;
-	Connection* endWireConnection;
+	Connection startWireConnection;
+	Connection endWireConnection;
 	
 	while (!WindowShouldClose())
 	{
@@ -55,8 +55,8 @@ int main ()
 
 			if(!isWireStarted){
 				startWireConnection = check_pos_to_connections_collision(connectionsVec, curMousePos);
-				if(startWireConnection != nullptr){
-					curWireStart = startWireConnection->pos;
+				if(!is_connection_empty(startWireConnection)){
+					curWireStart = startWireConnection.pos;
 				}
 				else{
 					curWireStart = curMousePos;
@@ -66,8 +66,8 @@ int main ()
 			}
 			
 			endWireConnection = check_pos_to_connections_collision(connectionsVec, curMousePos);			
-			if(endWireConnection != nullptr){
-				curWireEnd = endWireConnection->pos;
+			if(!is_connection_empty(endWireConnection)){
+				curWireEnd = endWireConnection.pos;
 			}
 			else{
 				curWireEnd = curMousePos;
@@ -79,7 +79,8 @@ int main ()
 			isWireStarted = false;
 
 			// means that new wire looped on the connection and can cause unwanted behaviour
-			if(startWireConnection != nullptr && startWireConnection == endWireConnection){
+			if(!is_connection_empty(startWireConnection) && startWireConnection.pos.x == endWireConnection.pos.x
+			&& startWireConnection.pos.y == endWireConnection.pos.y){
 				std::cout<<"\nWARNING: a shorted wire presented on the scheme\n";
 
 				//std::cout<<"start connection address: "<<startWireConnection<<'\n';
@@ -95,15 +96,15 @@ int main ()
 
 				wiresVec.push_back(newWire);
 
-				if(startWireConnection != nullptr){
-					startWireConnection->add_wire(newWire);
+				if(!is_connection_empty(startWireConnection)){
+					startWireConnection.add_wire(newWire);
 				}			
 				else{
 					Connection newStartWireConnection = Connection(newWire.pos, LOGIC_OFF, newWire);
 					connectionsVec.push_back(newStartWireConnection);
 				}
-				if(endWireConnection != nullptr){
-					endWireConnection->add_wire(newWire);
+				if(!is_connection_empty(endWireConnection)){
+					endWireConnection.add_wire(newWire);
 				}
 				else{
 					Connection newEndWireConnection = Connection(newWire.endPos, LOGIC_OFF, newWire);
@@ -113,9 +114,8 @@ int main ()
 			}
 			curWireStart = zeroVec;
 			curWireEnd = zeroVec;
-			startWireConnection = nullptr;
-			endWireConnection = nullptr;
-			//isShortagePresented = false;
+			startWireConnection = Connection();
+			endWireConnection = Connection();
 
 		}
 			

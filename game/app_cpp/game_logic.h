@@ -14,7 +14,7 @@ enum LogicState{
 class Object{
 	public:
 		Vector2 pos;
-		virtual ~Object(){}
+		//virtual ~Object(){}
 
 };
 
@@ -63,6 +63,8 @@ class Connection : public Object{
 		std::vector<Wire> connectedWires;
 		LogicState curLogicState;
 
+		Connection();
+
 		/// @brief Connection constructor
 		/// @param pos 
 		/// @param curLogicState 
@@ -71,15 +73,17 @@ class Connection : public Object{
 
 		void add_wire(Wire wireToAdd);
 
-		void change_logic_state(LogicState logicState);
+		void change_connection_logic_state(LogicState logicState);
 
 };
+
+bool is_connection_empty(Connection connection);
 
 /// @brief Returns pointer to a collider connection or nullptr if no connection collision happened 
 /// @param connectionsVec 
 /// @param collisionPos 
 /// @return 
-Connection* check_pos_to_connections_collision(std::vector<Connection> &connectionsVec, Vector2 collisionPos);
+Connection check_pos_to_connections_collision(std::vector<Connection> &connectionsVec, Vector2 collisionPos);
 
 
 #endif
