@@ -1,14 +1,32 @@
-#include "objects.h"
+#ifndef GAME_LOGIC_H_
+#define GAME_LOGIC_H_
+#define CONNECTION_RADIUS 15.0f
+#include "raylib.h"
+#include <iostream>
+#include <vector>
+
 // to make more human-readable while writing functions
+enum LogicState{
+	LOGIC_OFF = 0,
+	LOGIC_ON = 1,
+};
+
+class Object{
+	public:
+		Vector2 pos;
+		virtual ~Object(){}
+
+};
 
 
+class Wire : public Object{
+	public:
+		Vector2 endPos;
+		LogicState curLogicState;
 
-Wire::Wire(Vector2 pos, Vector2 endPos){
-    this->pos = pos;	
-    this->endPos = endPos;	
-}
+		Wire(Vector2 pos, Vector2 endPos);
 	
-
+};
 
 /*class SelfHostingConnection{
 	public:
@@ -40,28 +58,28 @@ Wire::Wire(Vector2 pos, Vector2 endPos){
 		}
 };*/
 
-
+class Connection : public Object{
+	public:
+		std::vector<Wire> connectedWires;
+		LogicState curLogicState;
 
 		/// @brief Connection constructor
 		/// @param pos 
 		/// @param curLogicState 
 		/// @param initWire wire on which a new connection will be introduced
-		Connection::Connection(Vector2 pos, LogicState curLogicState, Wire initWire){
-			this->pos = pos;
-			this->curLogicState = curLogicState;
-			connectedWires = std::vector<Wire>{initWire};
-		}
+		Connection(Vector2 pos, LogicState curLogicState, Wire initWire);
 
-		void Connection::add_wire(Wire wireToAdd){
-			std::cout<<"\nadding wire to the existing connection\nconnection logic state: " << this->curLogicState;
-			wireToAdd.curLogicState = this->curLogicState;
-			connectedWires.push_back(wireToAdd);
-		}
+		void add_wire(Wire wireToAdd);
 
-		void Connection::change_logic_state(LogicState logicState){
-			this->curLogicState = logicState;
-			for(int i = 0; i < this->connectedWires.size(); i++){
-				connectedWires[i].curLogicState = logicState;
-			}
-		}
+		void change_logic_state(LogicState logicState);
 
+};
+
+/// @brief Returns pointer to a collider connection or nullptr if no connection collision happened 
+/// @param connectionsVec 
+/// @param collisionPos 
+/// @return 
+Connection* check_pos_to_connections_collision(std::vector<Connection> &connectionsVec, Vector2 collisionPos);
+
+
+#endif

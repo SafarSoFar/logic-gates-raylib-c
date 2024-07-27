@@ -1,29 +1,5 @@
-#include "raylib.h"
-#include "objects.h"
-//#include <iostream>
-//#include <vector>
+#include "game_logic.h"
 using namespace std;
-
-//#define LOGIC_OFF = 0;
-//#define LOGIC_ON = 1;
-
-#define CONNECTION_RADIUS 15.0f
-
-
-
-
-/// @brief Returns pointer to a collider connection or nullptr if no connection collision happened 
-/// @param connectionsVec 
-/// @param collisionPos 
-/// @return 
-Connection* check_pos_to_connections_collision(vector<Connection> &connectionsVec, Vector2 collisionPos){
-	for(int i = 0; i < connectionsVec.size(); i++){
-		if(CheckCollisionPointCircle(collisionPos,connectionsVec[i].pos, CONNECTION_RADIUS)){
-			return &connectionsVec[i];
-		}
-	}
-	return nullptr;
-}
 
 
 int main ()
