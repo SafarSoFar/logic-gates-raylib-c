@@ -14,15 +14,22 @@ enum LogicState{
 	LOGIC_ON = 1,
 };
 
-class Wire{
+class Object{
 	public:
-		Vector2 startPos;
+		Vector2 pos;
+		virtual ~Object(){}
+
+};
+
+
+class Wire : public Object{
+	public:
 		Vector2 endPos;
 		LogicState curLogicState;
 
 
-		Wire(Vector2 startPos, Vector2 endPos){
-			this->startPos = startPos;	
+		Wire(Vector2 pos, Vector2 endPos){
+			this->pos = pos;	
 			this->endPos = endPos;	
 		}
 	
@@ -58,9 +65,8 @@ class Wire{
 		}
 };*/
 
-class Connection{
+class Connection : public Object{
 	public:
-		Vector2 pos;
 		vector<Wire> connectedWires;
 		LogicState curLogicState;
 
@@ -110,6 +116,7 @@ int main ()
 	const int windowWidth = 800;
 	const int windowHeight = 640;
 	bool isWireStarted = false;
+	bool isShortagePresented = false;
 
 	InitWindow(windowWidth, windowHeight, "Logic gates");
 
@@ -134,10 +141,10 @@ int main ()
 		DrawText("Press Q to remove everything", 0,0, 30, BLACK);
 		for(int i = 0; i < wiresVec.size();i++){
 			if(wiresVec[i].curLogicState == LOGIC_ON){
-				DrawLineEx(wiresVec[i].startPos, wiresVec[i].endPos, 5.0f, RED);
+				DrawLineEx(wiresVec[i].pos, wiresVec[i].endPos, 5.0f, RED);
 			}
 			else{
-				DrawLineEx(wiresVec[i].startPos, wiresVec[i].endPos, 5.0f, BLACK);
+				DrawLineEx(wiresVec[i].pos, wiresVec[i].endPos, 5.0f, BLACK);
 			}
 		}
 		for(int i = 0; i < connectionsVec.size(); i++){
@@ -153,6 +160,7 @@ int main ()
 
 			Vector2 curMousePos = GetMousePosition();
 			bool hasConnection = false;
+			isShortagePresented = false;
 
 			if(!isWireStarted){
 				startWireConnection = check_pos_to_connections_collision(connectionsVec, curMousePos);
@@ -182,33 +190,42 @@ int main ()
 			// means that new wire looped on the connection and can cause unwanted behaviour
 			if(startWireConnection != nullptr && startWireConnection == endWireConnection){
 				std::cout<<"\nWARNING: a shorted wire presented on the scheme\n";
+
+				//std::cout<<"start connection address: "<<startWireConnection<<'\n';
+				//std::cout<<"end connection address : "<<endWireConnection<<'\n';
+
+				// immediate resetting
+				isShortagePresented = true;
 			}
 
-			Wire newWire = Wire(curWireStart, curWireEnd);
+			if(!isShortagePresented){
+				Wire newWire = Wire(curWireStart, curWireEnd);
 
+
+				wiresVec.push_back(newWire);
+
+				if(startWireConnection != nullptr){
+					startWireConnection->add_wire(newWire);
+				}			
+				else{
+					Connection newStartWireConnection = Connection(newWire.pos, LOGIC_OFF, newWire);
+					connectionsVec.push_back(newStartWireConnection);
+				}
+				if(endWireConnection != nullptr){
+					endWireConnection->add_wire(newWire);
+				}
+				else{
+					Connection newEndWireConnection = Connection(newWire.endPos, LOGIC_OFF, newWire);
+					connectionsVec.push_back(newEndWireConnection);
+				}
+
+			}
 			curWireStart = zeroVec;
 			curWireEnd = zeroVec;
-
-			wiresVec.push_back(newWire);
-
-			if(startWireConnection != nullptr){
-				startWireConnection->add_wire(newWire);
-			}			
-			else{
-				Connection newStartWireConnection = Connection(newWire.startPos, LOGIC_OFF, newWire);
-				connectionsVec.push_back(newStartWireConnection);
-			}
-
-			if(endWireConnection != nullptr){
-				endWireConnection->add_wire(newWire);
-			}
-			else{
-				Connection newEndWireConnection = Connection(newWire.endPos, LOGIC_OFF, newWire);
-				connectionsVec.push_back(newEndWireConnection);
-			}
-
 			startWireConnection = nullptr;
 			endWireConnection = nullptr;
+			//isShortagePresented = false;
+
 		}
 			
 		if(IsKeyPressed(KEY_Q)){
