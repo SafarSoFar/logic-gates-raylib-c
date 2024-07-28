@@ -1,4 +1,7 @@
 #include "game_logic.h"
+#include "connection.h"
+#include "wire.h"
+
 using namespace std;
 
 
@@ -11,10 +14,9 @@ int main ()
 
 	InitWindow(windowWidth, windowHeight, "Logic gates");
 
-	Wire initWire = Wire(Vector2{100,100}, Vector2{100,150});
-	vector<Wire> wiresVec = vector<Wire>{initWire};
+	vector<Wire> wiresVec = vector<Wire>();
 
-	Connection initConnectionOn = Connection(Vector2{100,100}, LOGIC_ON, initWire);
+	Connection initConnectionOn = Connection(Vector2{100,100}, LOGIC_ON);
 	vector<Connection> connectionsVec = vector<Connection>{initConnectionOn};
 
 	Vector2 zeroVec = Vector2{0,0};
@@ -98,17 +100,21 @@ int main ()
 
 				if(!is_connection_empty(startWireConnection)){
 					startWireConnection.add_wire(newWire);
+					newWire.set_start_connection(&startWireConnection);
 				}			
 				else{
 					Connection newStartWireConnection = Connection(newWire.pos, LOGIC_OFF, newWire);
 					connectionsVec.push_back(newStartWireConnection);
+					newWire.set_start_connection(&newStartWireConnection);
 				}
 				if(!is_connection_empty(endWireConnection)){
 					endWireConnection.add_wire(newWire);
+					newWire.set_end_connection(&endWireConnection);
 				}
 				else{
 					Connection newEndWireConnection = Connection(newWire.endPos, LOGIC_OFF, newWire);
 					connectionsVec.push_back(newEndWireConnection);
+					newWire.set_end_connection(&newEndWireConnection);
 				}
 
 			}
@@ -126,8 +132,10 @@ int main ()
 		
 		EndDrawing();
 	}
-	wiresVec.clear();
-	connectionsVec.clear();
+	// redundant, freezes qutting
+	//wiresVec.clear();
+	//connectionsVec.clear();
+	
 	CloseWindow();
 	return 0;
 }
