@@ -26,20 +26,18 @@ bool is_connection_empty(Connection connection){
 
 void Connection::add_wire(Wire wireToAdd){
 	std::cout<<"\nadding wire to the existing connection\nconnection logic state: " << this->curLogicState;
-	connectedWires.push_back(wireToAdd);
-	if(this->curLogicState == LOGIC_ON){
-		wireToAdd.curLogicState = LOGIC_ON;
-	}
 	if(wireToAdd.curLogicState == LOGIC_ON){
 		this->change_connection_logic_state(LOGIC_ON);
 	}
+	connectedWires.push_back(wireToAdd);
+	
 }
 
 void Connection::change_connection_logic_state(LogicState logicState){
 	this->curLogicState = logicState;
-	/*for(int i = 0; i < this->connectedWires.size(); i++){
-		connectedWires[i].curLogicState = logicState;
-	}*/
+	for(int i = 0; i < this->connectedWires.size(); i++){
+		connectedWires[i].try_change_state();
+	}
 }
 
 

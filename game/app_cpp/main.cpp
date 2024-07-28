@@ -96,26 +96,29 @@ int main ()
 				Wire newWire = Wire(curWireStart, curWireEnd);
 
 
-				wiresVec.push_back(newWire);
 
 				if(!is_connection_empty(startWireConnection)){
-					startWireConnection.add_wire(newWire);
 					newWire.set_start_connection(&startWireConnection);
+					startWireConnection.add_wire(newWire);
 				}			
 				else{
 					Connection newStartWireConnection = Connection(newWire.pos, LOGIC_OFF, newWire);
-					connectionsVec.push_back(newStartWireConnection);
 					newWire.set_start_connection(&newStartWireConnection);
+					connectionsVec.push_back(newStartWireConnection);
 				}
+
+
 				if(!is_connection_empty(endWireConnection)){
-					endWireConnection.add_wire(newWire);
 					newWire.set_end_connection(&endWireConnection);
+					endWireConnection.add_wire(newWire);
 				}
 				else{
 					Connection newEndWireConnection = Connection(newWire.endPos, LOGIC_OFF, newWire);
-					connectionsVec.push_back(newEndWireConnection);
 					newWire.set_end_connection(&newEndWireConnection);
+					connectionsVec.push_back(newEndWireConnection);
 				}
+				
+				wiresVec.push_back(newWire);
 
 			}
 			curWireStart = zeroVec;
